@@ -57,3 +57,12 @@ Copyright (C) 2019 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
+
+Then setup git:
+```shell
+git remote add upstream git://g.csail.mit.edu/xv6-labs-2021
+git fetch upstream
+
+# prepare for lab 1 utilities
+git checkout -b util upstream/util
+```
