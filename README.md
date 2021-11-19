@@ -3,17 +3,19 @@
 
 ## Schedule
 
-+ [x] Setup 2021/11/18
-+ [ ] Utilities
-+ [ ] System calls
-+ [ ] Page tables
-+ [ ] Traps
-+ [ ] Copy-on-write
-+ [ ] Multithreading
-+ [ ] Network driver
-+ [ ] Lock
-+ [ ] File system
-+ [ ] Mmap
+Plan to finish one lab per week.
+
++ [x] 2021/11/18 **Setup**
++ [ ] 2021/11/21 **Utilities**
++ [ ] 2021/11/28 **System calls**
++ [ ] 2021/12/05 **Page tables**
++ [ ] 2021/12/12 **Traps**
++ [ ] 2021/12/19 **Copy-on-write**
++ [ ] 2021/12/26 **Multithreading**
++ [ ] 2022/01/02 **Network driver**
++ [ ] 2022/01/09 **Lock**
++ [ ] 2022/01/16 **File system**
++ [ ] 2022/01/23 **Mmap**
 
 ## Setup
 
