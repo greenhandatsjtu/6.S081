@@ -23,6 +23,14 @@ Build Docker image using Dockerfile port from [CalvinHaynes/MIT6.S081-2020Fall](
 ```shell
 docker build -t nil/6s081 .
 ```
+Then setup git and fetch xv6:
+```shell
+git remote add upstream git://g.csail.mit.edu/xv6-labs-2021
+git fetch upstream
+
+# prepare for lab 1 utilities
+git checkout -b util upstream/util
+```
 Run container and mount xv6 root:
 ```shell
 docker run -itd --name xv6 -v $(pwd):/xv6 nil/6s081
@@ -56,13 +64,4 @@ riscv64-linux-gnu-gcc (Ubuntu 9.3.0-17ubuntu1~20.04) 9.3.0
 Copyright (C) 2019 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-```
-
-Then setup git:
-```shell
-git remote add upstream git://g.csail.mit.edu/xv6-labs-2021
-git fetch upstream
-
-# prepare for lab 1 utilities
-git checkout -b util upstream/util
 ```
