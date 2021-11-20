@@ -65,3 +65,13 @@ Copyright (C) 2019 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
+
+Run all tests:
+```shell
+docker exec -it xv6 make grade
+```
+
+Run the grade tests that match "sleep"
+```shell
+docker exec -it xv6 make GRADEFLAGS=primes grade
+```
