@@ -6,7 +6,7 @@
 Plan to finish one lab per week.
 
 + [x] ~~2021/11/18 **Setup**~~
-+ [ ] 2021/11/21 **Utilities**
++ [x] ~~2021/11/21 **Utilities**~~
 + [ ] 2021/11/28 **System calls**
 + [ ] 2021/12/05 **Page tables**
 + [ ] 2021/12/12 **Traps**
@@ -74,7 +74,7 @@ docker exec -it xv6 make grade
 
 Run the grade tests that match "sleep"
 ```shell
-docker exec -it xv6 make GRADEFLAGS=primes grade
+docker exec -it xv6 make GRADEFLAGS=sleep grade
 ```
 
 ### Debug
