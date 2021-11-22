@@ -18,6 +18,9 @@ RUN cd qemu-5.1.0 && \
     make && \
     make install
 
+# enable autoload .gdbinit
+RUN echo "add-auto-load-safe-path /xv6/.gdbinit" >> /root/.gdbinit
+
 VOLUME xv6
 WORKDIR xv6
 

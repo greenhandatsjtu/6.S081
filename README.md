@@ -66,6 +66,7 @@ This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ```
 
+### Test
 Run all tests:
 ```shell
 docker exec -it xv6 make grade
@@ -74,4 +75,16 @@ docker exec -it xv6 make grade
 Run the grade tests that match "sleep"
 ```shell
 docker exec -it xv6 make GRADEFLAGS=primes grade
+```
+
+### Debug
+First start gdb server:
+```shell
+docker exec -it xv6 make qemu-gdb
+```
+
+Then exec xv6 container and use `gdb-multiarch` to debug:
+```shell
+docker exec -it xv6 bash
+gdb-multiarch
 ```
