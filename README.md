@@ -83,8 +83,7 @@ First start gdb server:
 docker exec -it xv6 make qemu-gdb
 ```
 
-Then exec xv6 container and use `gdb-multiarch` to debug:
+Then use `gdb-multiarch` to debug:
 ```shell
-docker exec -it xv6 bash
-gdb-multiarch
+docker exec -it xv6 gdb-multiarch
 ```
