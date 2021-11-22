@@ -19,7 +19,7 @@ Plan to finish one lab per week.
 
 ## Setup
 
-Build Docker image using Dockerfile port from [CalvinHaynes/MIT6.S081-2020Fall](https://github.com/CalvinHaynes/MIT6.S081-2020Fall/blob/main/DockerFIle/Dockerfile)
+Build Docker image using [Dockerfile](https://github.com/greenhandatsjtu/6.S081/blob/main/Dockerfile) port from [CalvinHaynes/MIT6.S081-2020Fall](https://github.com/CalvinHaynes/MIT6.S081-2020Fall/blob/main/DockerFIle/Dockerfile)
 ```shell
 docker build -t nil/6s081 .
 ```
