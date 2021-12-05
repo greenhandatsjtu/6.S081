@@ -1,0 +1,2 @@
+1. ugetpid: getcpu()
+2. vmprint: page 0 contains code+data, page 2 contains user stack; user can't read/write page 1 (guard page); page 509 contains USYSCALL, page 510 contains TRAPFRAME, page 511 contains TRAMPOLINE
