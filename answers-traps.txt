@@ -1,0 +1,7 @@
+RISC-V assembly:
+1. arguments to functions are stored in a0-a7 registers; a2 register 13.
+2. Nowhere, because compiler inline functions and compute f(8)+1 as 12 in compilation time.
+3. printf is located at 0x630
+4. ra value is 0x38 because jalr instruction will store (PC+4) in ra
+5. The output is "He110 World". I would set i to 0x00726c64. No.
+6. it's a random number. because although y is not specified, printf will still fetch value from a2 register.
