@@ -10,7 +10,7 @@ Plan to finish one lab per week.
 + [x] ~~2021/11/28 **System calls**~~
 + [x] ~~2021/12/05 **Page tables**~~
 + [x] ~~2021/12/12 **Traps**~~
-+ [ ] 2021/12/19 **Copy-on-write**
++ [x] ~~2021/12/19 (2022/03/23) **Copy-on-write**~~
 + [ ] 2021/12/26 **Multithreading**
 + [ ] 2022/01/02 **Network driver**
 + [ ] 2022/01/09 **Lock**
