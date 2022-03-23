@@ -14,6 +14,9 @@ void freerange(void *pa_start, void *pa_end);
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
+
+uint page_refcount[(PHYSTOP-KERNBASE)/PGSIZE]; // track all physical pages' reference count
+
 struct run {
   struct run *next;
 };
@@ -51,6 +54,12 @@ kfree(void *pa)
   if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
 
+  if(page_refcount[PA_INDEX(pa)] > 1){
+	  page_refcount[PA_INDEX(pa)]--;
+	  return;
+  }
+  page_refcount[PA_INDEX(pa)] = 0;
+
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
 
@@ -76,7 +85,32 @@ kalloc(void)
     kmem.freelist = r->next;
   release(&kmem.lock);
 
-  if(r)
-    memset((char*)r, 5, PGSIZE); // fill with junk
+  if(r) {
+	  memset((char *) r, 5, PGSIZE); // fill with junk
+	  page_refcount[PA_INDEX(r)] = 1;
+
+  }
   return (void*)r;
+}
+
+int cow_alloc(pagetable_t pagetable, uint64 va){
+	if(va >= MAXVA) return -1;
+	char *mem;
+	pte_t *pte = walk(pagetable, va, 0);
+	if(pte==0) return -1;
+	uint64 pa = PTE2PA(*pte);
+	if(pa == 0 || pa < (uint64)end) return -1;
+	uint flags = PTE_FLAGS(*pte);
+	if((mem = kalloc())==0) return -1;
+	// copy page
+	memmove(mem, (char*)pa, PGSIZE);
+	// unmap page
+	// must pass 1 as third param (do_free), which calls kfree() and decrements refcount of physical page
+	uvmunmap(pagetable, va, 1, 1);
+	// map new page with PTE_W set
+	if (mappages(pagetable, va, PGSIZE, (uint64)mem, (flags|PTE_W)&~PTE_C) != 0) {
+		kfree((void *)mem);
+		return -1;
+	}
+	return 0;
 }
