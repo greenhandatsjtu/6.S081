@@ -39,3 +39,38 @@ thread_switch((uint64) &t->context, (uint64) &next_thread->context);
 
 （这个lab实现了一个简单的哈希表，还是很有参考价值的。）
 
+## Barrier
+
++ 实现屏障：所有参与的线程需要等待其他线程到达同一位置（同步）
++ 利用`pthread_cond_t`实现
++ 完善`notxv6/barrier.c`
++ 预期效果：所有线程阻塞在`barrier()`，直到所有nthreads个线程都调用`barrier()`
++ 所有线程到达屏障后`bstate.round`加一
+
+### 实现
+
+```c
+static void 
+barrier()
+{
+	pthread_mutex_lock(&bstate.barrier_mutex); // acquire mutex
+	bstate.nthread++;
+	if(bstate.nthread < nthread)
+        // go to sleep on cond, releasing lock mutex, acquiring upon wake up
+		pthread_cond_wait(&bstate.barrier_cond, &bstate.barrier_mutex);
+	else {
+		bstate.round++; // increment round
+		bstate.nthread = 0; // clear nthread
+		pthread_cond_broadcast(&bstate.barrier_cond); // wake up every thread sleeping on cond
+	}
+	pthread_mutex_unlock(&bstate.barrier_mutex); // release mutex
+}
+```
+
+> You have to handle the case in which one thread races around the loop before the others have exited the barrier. In particular, you are re-using the `bstate.nthread` variable from one round to the next. Make sure that a thread that leaves the barrier and races around the loop doesn't increase `bstate.nthread` while a previous round is still using it.
+
+实际上，由于互斥锁的保护，不会出现上述情况，因为`pthread_cond_wait()`返回前会重新加锁，而此时互斥锁正在被第nthread个调用`barrier()`的线程使用，该线程对`bstate.round`加一、`bstate.nthread`清零后才会释放锁。
+
+## 测评
+
+![image-20220405152803413](images/multithreading-result.png)

@@ -30,7 +30,16 @@ barrier()
   // Block until all threads have called barrier() and
   // then increment bstate.round.
   //
-  
+	pthread_mutex_lock(&bstate.barrier_mutex); // acquire mutex
+	bstate.nthread++;
+	if(bstate.nthread < nthread)
+		pthread_cond_wait(&bstate.barrier_cond, &bstate.barrier_mutex);  // go to sleep on cond, releasing lock mutex, acquiring upon wake up
+	else {
+		bstate.round++; // increment round
+		bstate.nthread = 0; // clear nthread
+		pthread_cond_broadcast(&bstate.barrier_cond); // wake up every thread sleeping on cond
+	}
+	pthread_mutex_unlock(&bstate.barrier_mutex); // release mutex
 }
 
 static void *
