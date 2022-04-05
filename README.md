@@ -25,3 +25,17 @@ thread_switch((uint64) &t->context, (uint64) &next_thread->context);
 ```
 
 至于`uthread_switch.S`里的`thread_switch`，直接把xv6的`swtch`汇编代码搬过来即可。
+
+## Using threads
+
++ 通过加锁实现线程安全的哈希表
++ 解释为什么初始版本多线程下`put()`会缺失键
++ 进阶：每个bucket单独加锁（读写不同的bucket无需对整个哈希表加锁）来加速哈希操作
+
+### 实现
+
++ 每个bucket一个锁
++ 每次调用`insert()`前给对应的bucket加锁，调用返回之后解锁
+
+（这个lab实现了一个简单的哈希表，还是很有参考价值的。）
+

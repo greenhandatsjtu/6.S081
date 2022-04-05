@@ -1,0 +1,2 @@
+When 2 threads concurrently insert 2 entries in the same bucket, at line 37 & 38, new entry points to the same bucket head, and then pointer to bucket head points to new entries, which will result in 1 key missed.
+Also, when searching a key in a bucket, if a concurrent insert() happens, and the inserted key is what we are searching for, there will be duplicate entries for one key.
