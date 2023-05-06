@@ -304,16 +304,33 @@ sys_open(void)
       return -1;
     }
   } else {
-    if((ip = namei(path)) == 0){
-      end_op();
-      return -1;
-    }
-    ilock(ip);
-    if(ip->type == T_DIR && omode != O_RDONLY){
-      iunlockput(ip);
-      end_op();
-      return -1;
-    }
+	  int depth = 0;
+	  while (1){
+		  if(depth) iunlockput(ip);
+		  if((ip = namei(path)) == 0){
+			  end_op();
+			  return -1;
+		  }
+		  ilock(ip);
+		  if(ip->type == T_DIR && omode != O_RDONLY){
+			  iunlockput(ip);
+			  end_op();
+			  return -1;
+		  }
+		  if((ip->type != T_SYMLINK) || (omode & O_NOFOLLOW)) break;
+		  if(readi(ip, 0, (uint64)path, 0, MAXPATH) == -1){
+			  iunlockput(ip);
+			  end_op();
+			  return -1;
+		  }
+		  depth++;
+		  if(depth==10){
+			  // depth reach threshold (assume it's a cycle)
+			  iunlockput(ip);
+			  end_op();
+			  return -1;
+		  }
+	  }
   }
 
   if(ip->type == T_DEVICE && (ip->major < 0 || ip->major >= NDEV)){
@@ -393,7 +410,7 @@ sys_chdir(void)
   char path[MAXPATH];
   struct inode *ip;
   struct proc *p = myproc();
-  
+
   begin_op();
   if(argstr(0, path, MAXPATH) < 0 || (ip = namei(path)) == 0){
     end_op();
@@ -483,4 +500,27 @@ sys_pipe(void)
     return -1;
   }
   return 0;
+}
+
+uint64
+sys_symlink(void)
+{
+	struct inode *ip;
+	char target[MAXPATH], path[MAXPATH];
+	begin_op();
+	if((argstr(0, target, MAXPATH) < 0 ||
+	argstr(1, path, MAXPATH) < 0 ||
+	(ip = create(path, T_SYMLINK, 0, 0)) == 0)){
+		end_op();
+		return -1;
+	}
+	int n = sizeof(target);
+	if(writei(ip, 0, (uint64)target, 0, n) < n){
+		iunlockput(ip);
+		end_op();
+		return -1;
+	}
+	iunlockput(ip);
+	end_op();
+	return 0;
 }
