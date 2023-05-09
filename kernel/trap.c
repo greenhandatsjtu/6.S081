@@ -5,6 +5,9 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "fs.h"
+#include "sleeplock.h"
+#include "file.h"
 
 struct spinlock tickslock;
 uint ticks;
@@ -65,9 +68,41 @@ usertrap(void)
     intr_on();
 
     syscall();
-  } else if((which_dev = devintr()) != 0){
+  } else if(r_scause() == 0xd && r_stval() < MAXVA && r_stval() >= MMAP_AREA){
+	  uint64 page;
+	  page = PGROUNDDOWN(r_stval());
+	  struct vma* a = 0;
+	  int offset = 0;
+	  // check if this page is mmaped
+	  struct proc* p = myproc();
+	  for(int i = 0; i < NMMAP; i++){
+		  if(p->mapped_addrs[i].address && page>=p->mapped_addrs[i].address && page+PGSIZE<=p->mapped_addrs[i].address+p->mapped_addrs[i].length){
+			  a = &p->mapped_addrs[i];
+			  offset = page - p->mapped_addrs[i].address;
+			  break;
+		  }
+	  }
+	  if(!a){
+		  goto next;
+	  }
+
+	  // allocate physical memory
+	  char *mem;
+	  mem = kalloc();
+	  memset(mem, 0, PGSIZE);
+	  mappages(p->pagetable, page, PGSIZE, (uint64)mem, PTE_U | (a->prot<<1));
+	  struct inode * inode = a->f->ip;
+	  ilock(inode);
+	  if(readi(inode, 1, page, offset, PGSIZE)==-1){
+		  iunlock(inode);
+		  goto next;
+	  }
+	  iunlock(inode); // shouldn't call iunlockput()!!!
+  }
+  else if((which_dev = devintr()) != 0){
     // ok
   } else {
+next:
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
     p->killed = 1;

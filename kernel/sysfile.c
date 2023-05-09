@@ -393,7 +393,7 @@ sys_chdir(void)
   char path[MAXPATH];
   struct inode *ip;
   struct proc *p = myproc();
-  
+
   begin_op();
   if(argstr(0, path, MAXPATH) < 0 || (ip = namei(path)) == 0){
     end_op();
@@ -483,4 +483,105 @@ sys_pipe(void)
     return -1;
   }
   return 0;
+}
+
+uint64
+sys_mmap(void)
+{
+	int length, prot, flags;
+	struct file* f;
+	if(argint(1,&length)<0|| argint(2, &prot)<0 || argint(3, &flags)<0 || argfd(4, 0, &f)<0 ){
+		return 0xffffffffffffffff;
+	}
+	// check permissions
+	if(!f->readable)
+		return 0xffffffffffffffff;
+	if(!f->writable && (prot & PROT_WRITE) && (flags & MAP_SHARED))
+		return 0xffffffffffffffff;
+
+	struct proc* p = myproc();
+	struct vma* a = 0;
+	// find a VMA slot
+	for(int i = 0; i < NMMAP; i++){
+		if(p->mapped_addrs[i].address==0){
+			a = &p->mapped_addrs[i];
+			break;
+		}
+	}
+	if(a==0)
+		return 0xffffffffffffffff;
+	a->address = p->mapped_area;
+	a->length = length;
+	a->prot = prot;
+	a->flags = flags;
+	a->f = f;
+
+	// increment file ref count
+	filedup(f);
+
+	// increase mmap area pointer
+	p->mapped_area += length;
+	return a->address;
+}
+
+uint64
+munmap(uint64 addr, int length){
+	// check if this page is mmaped
+	struct vma* a = 0;
+	struct proc* p = myproc();
+	for(int i = 0; i < NMMAP; i++){
+		if(p->mapped_addrs[i].address && (addr==p->mapped_addrs[i].address || addr+length==p->mapped_addrs[i].address+p->mapped_addrs[i].length)){
+			a = &p->mapped_addrs[i];
+			break;
+		}
+	}
+	if(!a){
+		printf("munmap: vma not found\n");
+		return -1;
+	}
+
+	for(uint64 page = addr; page < addr + length; page += PGSIZE){
+		pte_t * pte = walk(p->pagetable, page, 0); // not alloc, only check
+		if(!(pte && (*pte & PTE_V))) continue; // not allocated, skip
+
+		// MAP_SHARED, write back to file before unmap
+		if(a->flags & MAP_SHARED && *pte & PTE_D) {
+			// only write back this page if it's dirty
+			if(filewrite(a->f, page, PGSIZE) < 0){
+				printf("munmap: write back fail\n");
+				return -1;
+			}
+		}
+
+		// unmap this page
+		uvmunmap(p->pagetable, page, 1, 1);
+	}
+
+	// update vma
+	if(addr==a->address&&length==a->length){
+		// unmap whole vma
+		fileclose(a->f);
+		memset(a, 0, sizeof(struct vma));
+	} else if(addr==a->address){
+		// unmap start
+		a->address += length;
+		a->length -= length;
+	} else {
+		// unmap end
+		a->length -= length;
+	}
+
+	return 0;
+}
+
+uint64
+sys_munmap(void)
+{
+	uint64 addr;
+	int length;
+	if(argaddr(0, &addr) || argint(1,&length)<0 ){
+		return -1;
+	}
+
+	return munmap(addr, length);
 }

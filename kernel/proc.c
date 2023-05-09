@@ -18,6 +18,8 @@ struct spinlock pid_lock;
 extern void forkret(void);
 static void freeproc(struct proc *p);
 
+extern uint64 munmap(uint64, int);
+
 extern char trampoline[]; // trampoline.S
 
 // helps ensure that wakeups of wait()ing
@@ -119,6 +121,11 @@ allocproc(void)
 found:
   p->pid = allocpid();
   p->state = USED;
+
+  p->mapped_area = MMAP_AREA;
+  for(int i=0;i < NMMAP; i++){
+	  memset(&p->mapped_addrs[i], 0, sizeof(struct vma));
+  }
 
   // Allocate a trapframe page.
   if((p->trapframe = (struct trapframe *)kalloc()) == 0){
@@ -289,6 +296,16 @@ fork(void)
   }
   np->sz = p->sz;
 
+  // Copy mmap VMAs from parent to child
+  for(int i = 0;i < NMMAP; i++){
+	  memmove(&np->mapped_addrs[i], &p->mapped_addrs[i], sizeof(struct vma));
+	  if(np->mapped_addrs[i].address){
+		  // increment file ref count
+		  filedup(np->mapped_addrs[i].f);
+	  }
+  }
+  np->mapped_area = p->mapped_area;
+
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 
@@ -343,6 +360,14 @@ exit(int status)
 
   if(p == initproc)
     panic("init exiting");
+
+  // unmap all mmapped areas
+  for(int i=0; i < NMMAP; i++){
+	  struct vma* vma = &p->mapped_addrs[i];
+	  if(vma->address==0) continue;
+	  munmap(vma->address, vma->length);
+	  memset(vma, 0, sizeof(struct vma));
+  }
 
   // Close all open files.
   for(int fd = 0; fd < NOFILE; fd++){
