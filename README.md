@@ -15,7 +15,7 @@ Plan to finish one lab per week.
 + [ ] 2022/01/02 **Network driver**
 + [x] ~~2022/01/09 (2022/11/03) **Lock**~~
 + [x] ~~2022/01/16 (2023/05/06) **File system**~~
-+ [ ] 2022/01/23 **Mmap**
++ [x] ~~2022/01/23 (2023/05/09) **Mmap**~~
 
 ## Setup
 
